@@ -1,0 +1,14 @@
+  <?xmlversion="1.0"?> 
+<?AutomationRuntimeIOSystem Version = 1.0?> 
+<IOCFG xmlns="http://www.br-automation.com/AR/IO" Version="2.0">
+  <Module ID="IF4.ST2.IF1.ST3" Hardware="X20DO9322">
+    <Parameter ID="HardwareModuleName" Value="X20DO9322" />
+  </Module>
+  <Module ID="IF4.ST2.IF1.ST3.IO" Hardware="X20DO9322">
+    <Parameter ID="FunctionModel" Value="Standard" />
+    <Parameter ID="FunctionModelNumber" Value="0" Type="USINT" />
+    <Parameter ID="Supervision" Value="off" />
+    <Parameter ID="StatusInfo" Value="on" />
+    <Parameter ID="DigitalOutputsPacked" Value="off" />
+  </Module>
+</IOCFG>

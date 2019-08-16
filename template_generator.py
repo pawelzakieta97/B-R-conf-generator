@@ -1,5 +1,4 @@
 import re
-import xml.dom.minidom
 
 # ar_file_name = "backup/arconfig.ar.bup"
 # io_file_name = "backup/iomap.io.bup"

@@ -1,0 +1,17 @@
+  <?xmlversion="1.0"?> 
+<?AutomationRuntimeIOSystem Version = 1.0?> 
+<IOCFG xmlns="http://www.br-automation.com/AR/IO" Version="2.0">
+  <Module ID="IF4.ST1.IF1.ST2" Hardware="X20AI2622">
+    <Parameter ID="HardwareModuleName" Value="X20AI2622" />
+  </Module>
+  <Module ID="IF4.ST1.IF1.ST2.IO" Hardware="X20AI2622">
+    <Parameter ID="FunctionModel" Value="Standard" />
+    <Parameter ID="FunctionModelNumber" Value="0" Type="USINT" />
+    <Parameter ID="Supervision" Value="off" />
+    <Parameter ID="InputFilter" Value="off" />
+    <Parameter ID="UpperLimit" Value="32767" Type="INT" />
+    <Parameter ID="LowerLimit" Value="-32767" Type="INT" />
+    <Parameter ID="ChannelType01" Value="-10V to +10V" />
+    <Parameter ID="ChannelType02" Value="-10V to +10V" />
+  </Module>
+</IOCFG>

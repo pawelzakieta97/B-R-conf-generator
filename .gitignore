@@ -1,1 +1,4 @@
 .idea
+mysql
+mysqlx
+mysql_connector_python-8.0.17-py2.7.egg-info
