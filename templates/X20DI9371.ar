@@ -1,10 +1,9 @@
-  <?xmlversion="1.0"?>
+<?xmlversion="1.0"?>
 <?AutomationRuntimeIOSystem Version = 1.0?>
 <IOCFG xmlns="http://www.br-automation.com/AR/IO" Version="2.0">
-  <Module ID="IF4.ST1.IF1.ST4" Hardware="X20DI9371">
+<Module ID="#module_path#" Hardware="X20DI9371">
     <Parameter ID="HardwareModuleName" Value="X20DI9371" />
-  </Module>
-  <Module ID="IF4.ST1.IF1.ST4.IO" Hardware="X20DI9371">
+  </Module><Module ID="#module_path#.IO" Hardware="X20DI9371">
     <Parameter ID="FunctionModel" Value="Standard" />
     <Parameter ID="FunctionModelNumber" Value="0" Type="USINT" />
     <Parameter ID="Supervision" Value="on" />
