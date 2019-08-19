@@ -1,4 +1,5 @@
 import re
+import os
 
 # ar_file_name = "backup/arconfig.ar.bup"
 # io_file_name = "backup/iomap.io.bup"
@@ -34,10 +35,20 @@ class Module:
                 do = re.findall('DigitalOutput..', fragment)
                 ai = re.findall('AnalogInput..', fragment)
                 ao = re.findall('AnalogOutput..', fragment)
-                if len(di)>0:
+                if len(di) > 0:
                     replacement = '>\n#di'+di[0][-2:]+'#\n<Prod'
                     fragment = re.sub('>\s<Prod', replacement, fragment)
-
+                if len(do) > 0:
+                    replacement = '>\n#do'+do[0][-2:]+'#\n<Prod'
+                    fragment = re.sub('>\s<Prod', replacement, fragment)
+                if len(ai) > 0:
+                    replacement = '>\n#ai'+ai[0][-2:]+'#\n<Prod'
+                    fragment = re.sub('>\s<Prod', replacement, fragment)
+                if len(ao) > 0:
+                    replacement = '>\n#ao'+ao[0][-2:]+'#\n<Prod'
+                    fragment = re.sub('>\s<Prod', replacement, fragment)
+                    replacement = '>\n#ao' + ao[0][-2:] + '#\n<Cons'
+                    fragment = re.sub('>\s<Cons', replacement, fragment)
                 self.text_io += fragment +'\n'
 
 
@@ -47,14 +58,14 @@ class Module:
 
 
     def store_tamplate(self, templates_path):
-        file_ar = open(templates_path+self.hardware+'.ar', 'w')
-        file_io = open(templates_path+self.hardware+'.io', 'w')
+        file_ar = open(templates_path+'/'+self.hardware+'.ar', 'w')
+        file_io = open(templates_path+'/'+self.hardware+'.io', 'w')
         file_ar.write(self.text_ar)
         file_io.write(self.text_io)
         file_ar.close()
         file_io.close()
 
-def generate_templates(ar_file_name = "backup/arconfig.ar.bup", io_file_name = "backup/iomap.io.bup", templates_path = "backup/"):
+def generate_templates(ar_file_name = "backup/arconfig.ar.bup", io_file_name = "backup/iomap.io.bup", templates_path = "templates/"):
     ar_file = open(ar_file_name, 'r')
     io_file = open(io_file_name, 'r')
     content_ar = ar_file.read()
@@ -72,11 +83,11 @@ def generate_templates(ar_file_name = "backup/arconfig.ar.bup", io_file_name = "
             module.merge(m)
             modules.remove(m)
 
+    if not os.path.isdir(templates_path):
+        os.mkdir(templates_path)
     for module in modules:
         module.assign_io(content_io)
         module.replace_ID()
         module.add_headers_footers()
         module.store_tamplate(templates_path)
     print('nic')
-
-generate_templates()

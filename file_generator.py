@@ -2,6 +2,7 @@ BASE_PATH_SUBJECT = "IF4.ST1.IF1.ST"
 BASE_PATH_TEST = "IF4.ST2.IF1.ST"
 
 import re
+import os
 
 def bind_IO_pv(variable_name):
     return '<Prod Device="TC#4-CPYDEV" DPName="::' + variable_name + '" Kind="pv"/>'
@@ -38,11 +39,13 @@ class ModuleConfiguration:
         self.content_io = content_io
 
 
-    def store_files(self):
-        f = open('processed/' + self.file_name + '.ar', 'w')
+    def store_files(self, directory):
+        if not os.path.isdir(directory):
+            os.mkdir(directory)
+        f = open(directory + '/' + self.file_name + '.ar', 'w')
         f.write(self.content_ar)
         f.close()
-        f = open('processed/' + self.file_name + '.io', 'w')
+        f = open(directory + '/' + self.file_name + '.io', 'w')
         f.write(self.content_io)
         f.close()
 
@@ -54,7 +57,7 @@ class FileGenerator:
         self.module_idx_test = 2
         self.modules = []
 
-    def generate_files(self, module_name, active_ports):
+    def add_module(self, module_name, active_ports):
         modules = []
         modules.append(ModuleConfiguration(BASE_PATH_SUBJECT+str(self.module_idx_subject),
                                          module_name+'_sub'+str(self.module_idx_subject),
@@ -71,6 +74,26 @@ class FileGenerator:
         self.modules += modules
         return modules
 
+    def create_other(self):
+        if not os.path.isdir(self.template_path):
+            os.mkdir(self.template_path)
+        f = open(self.template_path + '/other.ar', 'w')
+        f.write('  <?xmlversion="1.0"?>\n'
+                '<?AutomationRuntimeIOSystem Version = 1.0?>\n'
+                '<IOCFG xmlns="http://www.br-automation.com/AR/IO" Version="2.0">\n'
+                '<Module ID="#module_path#" Hardware="#module_name#">\n'
+                '<Parameter ID="HardwareModuleName" Value="#module_name#" />\n'
+                '</Module>\n'
+                '</IOCFG>)')
+        f.close()
+        f = open(self.template_path + '/other.io', 'w')
+        f.write('<?xmlversion="1.0" encoding="utf-8"?>\n'
+                '<?AutomationRuntimeIOSystem Version="1.0"?>\n'
+                '<IO xmlns="http://www.br-automation.com/AR/IO">\n'
+                '<Links>\n'
+                '</Links\n'
+                '</IO>')
+        f.close()
     def generate_ar(self, module_name, is_on_subject):
         if is_on_subject:
             module_path = BASE_PATH_SUBJECT+str(self.module_idx_subject)
@@ -78,19 +101,27 @@ class FileGenerator:
             module_path = BASE_PATH_TEST + str(self.module_idx_test)
 
         if module_type(module_name) == 'other':
-            f = open(self.template_path+'other.ar', 'r')
+            if not os.path.isfile(self.template_path+'/other.ar'):
+                self.create_other()
+            f = open(self.template_path+'/other.ar', 'r')
             file_content = f.read()
             file_content = re.sub('#module_path#', module_path, file_content)
             return file_content
+        try:
+            f = open(self.template_path + '/' + module_name + '.ar', 'r')
+        except:
+            raise Exception('couldn\'t open file "' + module_name + '.ar' + '" in directory "'+self.template_path)
 
-        f = open(self.template_path + module_name + '.ar', 'r')
+
         file_content = f.read()
         file_content = re.sub('#module_path#', module_path, file_content)
         return file_content
 
     def generate_io(self, module_name, active_ports, is_on_subject):
         if module_type(module_name) == 'other':
-            f = open(self.template_path+'other.io', 'r')
+            if not os.path.isfile(self.template_path+'/other.io'):
+                self.create_other()
+            f = open(self.template_path+'/other.io', 'r')
             return f.read()
         if is_on_subject:
             array_name = module_type(module_name)+'_sub[' + str(self.module_idx_subject)
@@ -98,8 +129,11 @@ class FileGenerator:
         else:
             array_name = module_type(module_name)+'_test[' + str(self.module_idx_test)
             module_path = BASE_PATH_TEST + str(self.module_idx_test)
-        template_file = self.template_path + module_name+'.io'
-        f = open(template_file, 'r')
+        template_file = self.template_path + '/' + module_name+'.io'
+        try:
+            f = open(template_file, 'r')
+        except:
+            raise Exception('couldn\'t open file "' + template_file+ '" in directory "'+self.template_path)
         file_content = f.read()
         for port in active_ports:
             port_str = str(port)
@@ -122,9 +156,11 @@ class FileGenerator:
         return content
 
 
-    def store_files(self):
+    def store_files(self, directory = 'processed'):
         for module in self.modules:
-            module.store_files()
-        f = open('processed/configuration.xml', 'w')
+            module.store_files(directory)
+        if not os.path.isdir(directory):
+            os.mkdir(directory)
+        f = open(directory+'/configuration.xml', 'w')
         f.write(self.generate_main_file())
         f.close()
