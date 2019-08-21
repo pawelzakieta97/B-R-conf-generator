@@ -169,8 +169,8 @@ class FileGenerator:
     def generate_main_file(self):
         content = '<IOCFG xmlns="http://www.br-automation.com/AR/IO" Version="2.0">\n' \
                   '<Module ID="$root" Source = "AR" SourceID="$root" />\n' \
-                  '<Module ID="IF4.ST1" Source = "Template" SourceName="Template_X20BC0083" />\n' \
-                  '<Module ID="IF4.ST2" Source = "Template" SourceName="Template_X20BC0083" />\n'
+                  '<Module ID="IF4.ST1" Source = "AR" SourceName="Template_X20BC0083" />\n' \
+                  '<Module ID="IF4.ST2" Source = "AR" SourceName="Template_X20BC0083" />\n'
         for module in self.modules:
             content += '<Module ID="' + module.path + '" Source = "Template" SourceName="' + module.file_name + '" />\n'
         content += '</IOCFG>'
