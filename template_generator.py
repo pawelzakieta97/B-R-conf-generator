@@ -1,9 +1,6 @@
 import re
 import os
 
-# ar_file_name = "backup/arconfig.ar.bup"
-# io_file_name = "backup/iomap.io.bup"
-# templates_path = "backup/"
 
 class Module:
     def __init__(self, text):
@@ -78,7 +75,6 @@ def generate_templates(ar_file_name = "backup/arconfig.ar.bup", io_file_name = "
 
     for module in modules:
         same_hardware = [m for m in modules if m.hardware == module.hardware and not m == module]
-        print (same_hardware)
         for m in same_hardware:
             module.merge(m)
             modules.remove(m)
@@ -90,4 +86,3 @@ def generate_templates(ar_file_name = "backup/arconfig.ar.bup", io_file_name = "
         module.replace_ID()
         module.add_headers_footers()
         module.store_tamplate(templates_path)
-    print('nic')
