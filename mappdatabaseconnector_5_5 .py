@@ -148,6 +148,7 @@ class DB:
     _database = None
     _cnx = None
     _jsonResponse = None
+    _query_type = 'modules'
     _fileGenerator = FileGenerator(template_path='templates')
 
     def connect(self, user, password, host, port, database):
@@ -184,8 +185,6 @@ class DB:
         return self._jsonResponse
 
     def query(self, sql):
-
-
         try:
             if args.sqlType == 'mssql':
                 cursor = self._cnx.cursor()
@@ -199,8 +198,6 @@ class DB:
         end = re.search('WHERE', sql).start()
         table_name = sql[begin + 5:end - 1]
         print('table name: ' + table_name)
-
-        # split multistatement queries, but ignore semicolon within queries
         ID_project = re.findall(r'\d+', sql)[-1]
         sql = 'SELECT * FROM ' + table_name + " WHERE ID_project = '"+ID_project+"'"
         print('ID_project = '+ID_project)
@@ -224,23 +221,39 @@ class DB:
         #     response = sqlToJson(column_names, data, cursor.description)
         self._cnx.commit()
         data_processed = []
-        for row in data:
-            modules = self._fileGenerator.add_module(row[2], eval(row[3]))
-            # method add_module returns a list of generated module info (including file names and contents). If the
-            # subject module is IO, the list contains 2 modules- subject and test
-            if len(modules) == 2:
-                test_module = modules[1]
-                sub_module = modules[0]
-                data_processed.append([row[1], test_module.file_name+'.ar', test_module.content_ar,
-                                       test_module.file_name+'.io', test_module.content_io,
-                                       sub_module.file_name+'.ar', sub_module.content_ar,
-                                       sub_module.file_name+'.io', sub_module.content_io])
+        if self._query_type == 'modules':
+            for row in data:
+                modules = self._fileGenerator.add_module(row[2], eval(row[3]))
+                # method add_module returns a list of generated module info (including file names and contents). If the
+                # subject module is IO, the list contains 2 modules- subject and test
+                if len(modules) == 2:
+                    test_module = modules[1]
+                    sub_module = modules[0]
+                    data_processed.append([row[1], test_module.file_name+'.ar', test_module.content_ar,
+                                           test_module.file_name+'.io', test_module.content_io,
+                                           sub_module.file_name+'.ar', sub_module.content_ar,
+                                           sub_module.file_name+'.io', sub_module.content_io])
 
-        response = sqlToJson(['ID', 'test_name_ar', 'test_file_ar', 'test_name_io', 'test_file_io', 'sub_name_ar',
-                              'sub_file_ar',  'sub_name_io', 'sub_file_io'], data_processed, cursor.description)
-        response['types'] = ['TINY', 'VAR_STRING', 'VAR_STRING', 'VAR_STRING', 'VAR_STRING', 'VAR_STRING', 'VAR_STRING',
-                             'VAR_STRING', 'VAR_STRING']
+            response = sqlToJson(['ID', 'test_name_ar', 'test_file_ar', 'test_name_io', 'test_file_io', 'sub_name_ar',
+                                  'sub_file_ar',  'sub_name_io', 'sub_file_io'], data_processed, cursor.description)
+            response['types'] = ['TINY', 'VAR_STRING', 'VAR_STRING', 'VAR_STRING', 'VAR_STRING', 'VAR_STRING', 'VAR_STRING',
+                                 'VAR_STRING', 'VAR_STRING']
+            self._query_type = 'conf'
+        elif self._query_type == 'conf':
+            response = sqlToJson(['config'], [[self._fileGenerator.generate_main_file()]], cursor.description)
+            response['types'] = ['VAR_STRING']
+            self._query_type = 'io'
+        elif self._query_type == 'io':
+            conn = self._fileGenerator.connections
+            max_len = max(len(conn['di']), len(conn['do']), len(conn['ai']), len(conn['ao']))
+            for key in conn:
+                while len(conn[key]) < max_len:
+                    conn[key].append('')
 
+            response = sqlToJson(['di', 'do', 'ai', 'ao'],
+                                 [[conn[key][i] for key in conn] for i in range(len(conn['di']))],
+                                 cursor.description)
+            self._query_type = 'modules'
         cursor.close()
         debug_log(response)
         #response['data'][0]['Config'] = 'costum_response'

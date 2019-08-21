@@ -55,7 +55,7 @@ class FileGenerator:
         self.module_idx_subject = 2
         self.module_idx_test = 2
         self.modules = []
-        self.connections = {'di':[], 'do':[], 'ai':[], 'ao':[]}
+        self.connections = {'di': [], 'do': [], 'ai': [], 'ao': []}
 
     def add_module(self, module_name, active_ports):
         modules = []
