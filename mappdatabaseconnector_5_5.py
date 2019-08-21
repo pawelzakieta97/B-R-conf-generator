@@ -181,7 +181,6 @@ class DB:
             return makeJsonResponse(1, "not connected to sql server", "")
 
     def getData(self):
-        print("getData function: " + str(self._jsonResponse))
         return self._jsonResponse
 
     def query(self, sql):
@@ -220,6 +219,7 @@ class DB:
         # First query in the cycle- returns the list of all necessary module configuration files to automation studio
         if self._query_type == 'modules':
             for row in data:
+                self._fileGenerator = FileGenerator(template_path='templates')
                 modules = self._fileGenerator.add_module(row[2], eval(row[3]))
                 # method add_module returns a list of generated module info (including file names and contents). If the
                 # subject module is IO, the list contains 2 modules- subject and test
@@ -238,6 +238,7 @@ class DB:
             response['types'] = ['TINY', 'VAR_STRING', 'VAR_STRING', 'VAR_STRING', 'VAR_STRING', 'VAR_STRING', 'VAR_STRING',
                                  'VAR_STRING', 'VAR_STRING']
             self._query_type = 'conf'
+            print('sending module configuration files: ')
 
         # second query in the cycle- does not use any of the data returned from the database after this query. Instead,
         # it generates main configuration file based on the previous query with all the module data
@@ -264,11 +265,12 @@ class DB:
             # to
             # [[d1, do1, ai1, ao1],[d2, do2, ai2, ao2],...]
             response = sqlToJson(['di', 'do', 'ai', 'ao'],
-                                 [[conn[key][i] for key in conn] for i in range(len(conn['di']))],
+                                 [[conn['di'][i], conn['do'][i], conn['ai'][i], conn['ao'][i]] for i in range(len(conn['di']))],
                                  cursor.description)
+            response['types'] = ['VAR_STRING', 'VAR_STRING', 'VAR_STRING', 'VAR_STRING']
             self._query_type = 'modules'
         cursor.close()
-        debug_log(response)
+        #debug_log(response)
         self._jsonResponse = makeJsonResponse(0, "", response)
         return json.dumps({"responseSize": len(self._jsonResponse)})
 
