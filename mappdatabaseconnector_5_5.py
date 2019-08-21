@@ -239,15 +239,18 @@ class DB:
                                  'VAR_STRING', 'VAR_STRING']
             self._query_type = 'conf'
             print('sending module configuration files: ')
+            for row in response['data']:
+                print([content[0:min(len(data), 100)] for content in row])
 
-        # second query in the cycle- does not use any of the data returned from the database after this query. Instead,
-        # it generates main configuration file based on the previous query with all the module data
+        # second query in the cycle- the data returned from the database after this query is discarded.
+        # It generates main configuration file based on the previous query with all the module data
         elif self._query_type == 'conf':
             response = sqlToJson(['config'], [[self._fileGenerator.generate_main_file()]], cursor.description)
             response['types'] = ['VAR_STRING']
+            print('main configuration file: \n'+str(response))
             self._query_type = 'io'
 
-        # third query in the cycle- based on active ports data received in the first query generates a table of
+        # third query in the cycle- based on active ports data received in the first query, generates a table of
         # desired connections. The table has a following structure:
         # [[di_conn[0], do_conn[0], ai_conn[0], ao_conn[0]],[di_conn[1], do_conn[1], ai_conn[1], ao_conn[1]], ...]
         # it is necessary that all the connection types (di, do, ai, ao) have the same length.
@@ -269,6 +272,7 @@ class DB:
                                  cursor.description)
             response['types'] = ['VAR_STRING', 'VAR_STRING', 'VAR_STRING', 'VAR_STRING']
             self._query_type = 'modules'
+            print('connections: \n'+str(response))
         cursor.close()
         #debug_log(response)
         self._jsonResponse = makeJsonResponse(0, "", response)
