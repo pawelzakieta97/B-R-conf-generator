@@ -199,7 +199,9 @@ class DB:
         table_name = sql[begin + 5:end - 1]
         print('table name: ' + table_name)
         ID_project = re.findall(r'\d+', sql)[-1]
-        sql = 'SELECT * FROM ' + table_name + " WHERE ID_project = '"+ID_project+"'"
+
+        # change all queries to selecting all module entries from a given project
+        sql = 'SELECT * FROM ' + table_name + " WHERE ID_project = '"+ID_project+"';"
         print('ID_project = '+ID_project)
         for statement in re.sub(r'(\)\s*);', r'\1%;%', sql).split('%;%'):
             print('executing: ' + statement)
@@ -211,16 +213,11 @@ class DB:
             data = cursor.fetchall()
         except Exception as ex:
             pass
-        # cursor description is available if there was a response
-        # Hence we create the json response that can later be forwared
-        # if(cursor.description):
-        #     if(args.sqlType == 'mssql'):
-        #         column_names = [column[0] for column in cursor.description]
-        #     else:
-        #         column_names = cursor.column_names
-        #     response = sqlToJson(column_names, data, cursor.description)
         self._cnx.commit()
+
         data_processed = []
+
+        # First query in the cycle- returns the list of all necessary module configuration files to automation studio
         if self._query_type == 'modules':
             for row in data:
                 modules = self._fileGenerator.add_module(row[2], eval(row[3]))
@@ -236,29 +233,44 @@ class DB:
 
             response = sqlToJson(['ID', 'test_name_ar', 'test_file_ar', 'test_name_io', 'test_file_io', 'sub_name_ar',
                                   'sub_file_ar',  'sub_name_io', 'sub_file_io'], data_processed, cursor.description)
+            # overwriting variable types- cursor.description contains information on the actual database
+            # table that has only 4 columns.
             response['types'] = ['TINY', 'VAR_STRING', 'VAR_STRING', 'VAR_STRING', 'VAR_STRING', 'VAR_STRING', 'VAR_STRING',
                                  'VAR_STRING', 'VAR_STRING']
             self._query_type = 'conf'
+
+        # second query in the cycle- does not use any of the data returned from the database after this query. Instead,
+        # it generates main configuration file based on the previous query with all the module data
         elif self._query_type == 'conf':
             response = sqlToJson(['config'], [[self._fileGenerator.generate_main_file()]], cursor.description)
             response['types'] = ['VAR_STRING']
             self._query_type = 'io'
+
+        # third query in the cycle- based on active ports data received in the first query generates a table of
+        # desired connections. The table has a following structure:
+        # [[di_conn[0], do_conn[0], ai_conn[0], ao_conn[0]],[di_conn[1], do_conn[1], ai_conn[1], ao_conn[1]], ...]
+        # it is necessary that all the connection types (di, do, ai, ao) have the same length.
         elif self._query_type == 'io':
             conn = self._fileGenerator.connections
-            max_len = max(len(conn['di']), len(conn['do']), len(conn['ai']), len(conn['ao']))
+
+            # to ensure that connection lists of each type have the same length, they are filled with empty strings
+            max_len = max([len(conn[key]) for key in conn])
             for key in conn:
                 while len(conn[key]) < max_len:
                     conn[key].append('')
 
+            # the connection list is converted from
+            # {'di':[di1, di2...], 'do':[do1, do2...], 'ai':[a1, ai2...], 'ao':[ao1, ao2...]}
+            # to
+            # [[d1, do1, ai1, ao1],[d2, do2, ai2, ao2],...]
             response = sqlToJson(['di', 'do', 'ai', 'ao'],
                                  [[conn[key][i] for key in conn] for i in range(len(conn['di']))],
                                  cursor.description)
             self._query_type = 'modules'
         cursor.close()
         debug_log(response)
-        #response['data'][0]['Config'] = 'costum_response'
         self._jsonResponse = makeJsonResponse(0, "", response)
-        return json.dumps({"responseSize":len(self._jsonResponse)})
+        return json.dumps({"responseSize": len(self._jsonResponse)})
 
 class S(BaseHTTPRequestHandler):
 
