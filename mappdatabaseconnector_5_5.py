@@ -230,7 +230,11 @@ class DB:
                                            test_module.file_name+'.io', test_module.content_io,
                                            sub_module.file_name+'.ar', sub_module.content_ar,
                                            sub_module.file_name+'.io', sub_module.content_io])
-
+                else:
+                    sub_module = modules[0]
+                    data_processed.append([row[1], 'empty.ar', [], 'empty.io', [],
+                                           sub_module.file_name + '.ar', sub_module.content_ar,
+                                           sub_module.file_name + '.io', sub_module.content_io])
             response = sqlToJson(['ID', 'test_name_ar', 'test_file_ar', 'test_name_io', 'test_file_io', 'sub_name_ar',
                                   'sub_file_ar',  'sub_name_io', 'sub_file_io'], data_processed, cursor.description)
             # overwriting variable types- cursor.description contains information on the actual database
@@ -240,7 +244,7 @@ class DB:
             self._query_type = 'conf'
             print('sending module configuration files: ')
             for row in response['data']:
-                print([content[0:min(len(data), 100)] for content in row])
+                print([row[content][0:min(len(row), 100)] for content in row])
 
         # second query in the cycle- the data returned from the database after this query is discarded.
         # It generates main configuration file based on the previous query with all the module data

@@ -1,0 +1,8 @@
+  <?xmlversion="1.0"?>
+<?AutomationRuntimeIOSystem Version = 1.0?>
+<IOCFG xmlns="http://www.br-automation.com/AR/IO" Version="2.0">
+<Module ID="IF4.ST1.IF1.ST3" Hardware="X20AT2222">
+<Parameter ID="HardwareModuleName" Value="X20AT2222" />
+<Parameter ID="Supervision" Value="off" />
+</Module>
+</IOCFG>)

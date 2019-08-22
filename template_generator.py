@@ -33,17 +33,15 @@ class Module:
                 ai = re.findall('AnalogInput..', fragment)
                 ao = re.findall('AnalogOutput..', fragment)
                 if len(di) > 0:
-                    replacement = '>\n#di'+di[0][-2:]+'#\n<Prod'
-                    fragment = re.sub('>\s<Prod', replacement, fragment)
+                    replacement = '>\n#di'+di[0][-2:]+'#\n</LN>'
+                    fragment = re.sub('>\s</LN>', replacement, fragment)
                 if len(do) > 0:
-                    replacement = '>\n#do'+do[0][-2:]+'#\n<Prod'
-                    fragment = re.sub('>\s<Prod', replacement, fragment)
+                    replacement = '>\n#do'+do[0][-2:]+'#\n<Cons'
+                    fragment = re.sub('>\s<Cons', replacement, fragment)
                 if len(ai) > 0:
-                    replacement = '>\n#ai'+ai[0][-2:]+'#\n<Prod'
-                    fragment = re.sub('>\s<Prod', replacement, fragment)
+                    replacement = '>\n#ai'+ai[0][-2:]+'#\n</LN>'
+                    fragment = re.sub('>\s</LN>', replacement, fragment)
                 if len(ao) > 0:
-                    replacement = '>\n#ao'+ao[0][-2:]+'#\n<Prod'
-                    fragment = re.sub('>\s<Prod', replacement, fragment)
                     replacement = '>\n#ao' + ao[0][-2:] + '#\n<Cons'
                     fragment = re.sub('>\s<Cons', replacement, fragment)
                 self.text_io += fragment +'\n'

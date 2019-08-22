@@ -5,7 +5,10 @@ import re
 import os
 
 def bind_IO_pv(variable_name):
-    return '<Prod Device="TC#4-CPYDEV" DPName="::' + variable_name + '" Kind="pv"/>'
+    if variable_name[1] == 'o':
+        return '<Prod Device="TC#4-CPYDEV" DPName="::' + variable_name + '" Kind="pv"/>'
+    else:
+        return '<Cons Device="TC#4-CPYDEV" DPName="::' + variable_name + '" Kind="pv"/>'
 
 def module_type(module_name):
     if 'DI' in module_name or 'di' in module_name:
@@ -126,6 +129,7 @@ class FileGenerator:
         file_content = re.sub('#module_path#', module_path, file_content)
         return file_content
 
+
     def generate_io(self, module_name, is_on_subject):
         if module_type(module_name) == 'other':
             if not os.path.isfile(self.template_path+'/other.io'):
@@ -169,8 +173,8 @@ class FileGenerator:
     def generate_main_file(self):
         content = '<IOCFG xmlns="http://www.br-automation.com/AR/IO" Version="2.0">\n' \
                   '<Module ID="$root" Source = "AR" SourceID="$root" />\n' \
-                  '<Module ID="IF4.ST1" Source = "AR" SourceName="Template_X20BC0083" />\n' \
-                  '<Module ID="IF4.ST2" Source = "AR" SourceName="Template_X20BC0083" />\n'
+                  '<Module ID="IF4.ST1" Source = "AR" SourceName="X20BC0083" />\n' \
+                  '<Module ID="IF4.ST2" Source = "AR" SourceName="X20BC0083" />\n'
         for module in self.modules:
             content += '<Module ID="' + module.path + '" Source = "Template" SourceName="' + module.file_name + '" />\n'
         content += '</IOCFG>'
