@@ -337,9 +337,6 @@ class S(BaseHTTPRequestHandler):
             except Exception as ex:
                 debug_print(ex[0],ex[1])
                 self._respond(makeJsonResponse(ex[0], ex[1], ""))
-        except Exception as ex:
-            print(ex)
-            self._respond(makeJsonResponse(ex[0], ex[1], ""))
 
 def run(server_class=HTTPServer, handler_class=S, webServerPort=85):
     handler_class.protocol_version = 'HTTP/1.1'
