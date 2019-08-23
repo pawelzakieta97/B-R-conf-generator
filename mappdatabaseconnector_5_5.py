@@ -218,8 +218,8 @@ class DB:
 
         # First query in the cycle- returns the list of all necessary module configuration files to automation studio
         if self._query_type == 'modules':
+            self._fileGenerator = FileGenerator(template_path='templates')
             for row in data:
-                self._fileGenerator = FileGenerator(template_path='templates')
                 modules = self._fileGenerator.add_module(row[2], eval(row[3]))
                 # method add_module returns a list of generated module info (including file names and contents). If the
                 # subject module is IO, the list contains 2 modules- subject and test
