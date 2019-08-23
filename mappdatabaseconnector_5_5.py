@@ -244,7 +244,7 @@ class DB:
             self._query_type = 'conf'
             print('sending module configuration files: ')
             for row in response['data']:
-                print([row[content][0:min(len(row), 100)] for content in row])
+                print([row[content][0:min(len(row), 100)] if content != 'ID' else row[content] for content in row])
 
         # second query in the cycle- the data returned from the database after this query is discarded.
         # It generates main configuration file based on the previous query with all the module data
