@@ -195,7 +195,7 @@ class DB:
 
         begin = re.search('FROM', sql).start()
         end = re.search('WHERE', sql).start()
-        table_name = sql[begin + 5:end - 1]
+        table_name = sql[begin + 6:end - 2]
         print('table name: ' + table_name)
         ID_project = re.findall(r'\d+', sql)[-1]
 
@@ -232,7 +232,7 @@ class DB:
                                            sub_module.file_name+'.io', sub_module.content_io])
                 else:
                     sub_module = modules[0]
-                    data_processed.append([row[1], 'empty.ar', [], 'empty.io', [],
+                    data_processed.append([row[1], 'empty.ar', '', 'empty.io', '',
                                            sub_module.file_name + '.ar', sub_module.content_ar,
                                            sub_module.file_name + '.io', sub_module.content_io])
             response = sqlToJson_offline(['ID', 'test_name_ar', 'test_file_ar', 'test_name_io', 'test_file_io', 'sub_name_ar',
@@ -324,7 +324,7 @@ class DB_offline:
 
         begin = re.search('FROM', sql).start()
         end = re.search('WHERE', sql).start()
-        table_name = sql[begin + 5:end - 1]
+        table_name = sql[begin + 6:end - 2]
         print('table name: ' + table_name)
         ID_project = re.findall(r'\d+', sql)[-1]
 
@@ -335,13 +335,14 @@ class DB_offline:
             print('simulating executing: ' + statement)
         response = {}
         subject_modules = ['X20AT2222', 'X20AI2622', 'X20DI9371', 'X20AO2622', 'X20DO9322']
-        data = [[1, 1, subject_modules[0], '[1,2]'], [1, 2, subject_modules[1], '[1,2]'],
-                [1, 3, subject_modules[2], '[1,2]'], [1, 4, subject_modules[3], '[1,2]'],
-                [1, 5, subject_modules[4], '[1,2]']]
+        data = [[1, 1, subject_modules[0], '[1,2]'], [1, 1, subject_modules[1], '[1,2]'],
+                [1, 1, subject_modules[2], '[1,2]'], [1, 1, subject_modules[3], '[1,2]'],
+                [1, 1, subject_modules[4], '[1,2]']]
         data_processed = []
 
         # First query in the cycle- returns the list of all necessary module configuration files to automation studio
-        if self._query_type == 'modules':
+        #if self._query_type == 'modules':
+        if table_name == 'modules':
             self._fileGenerator = FileGenerator(template_path='templates')
             for row in data:
                 modules = self._fileGenerator.add_module(row[2], eval(row[3]))
@@ -356,7 +357,7 @@ class DB_offline:
                                            sub_module.file_name+'.io', sub_module.content_io])
                 else:
                     sub_module = modules[0]
-                    data_processed.append([row[1], 'empty.ar', [], 'empty.io', [],
+                    data_processed.append([row[1], 'empty.ar', '', 'empty.io', '',
                                            sub_module.file_name + '.ar', sub_module.content_ar,
                                            sub_module.file_name + '.io', sub_module.content_io])
             response = sqlToJson_offline(['ID', 'test_name_ar', 'test_file_ar', 'test_name_io', 'test_file_io', 'sub_name_ar',
@@ -368,11 +369,12 @@ class DB_offline:
             self._query_type = 'conf'
             print('sending module configuration files: ')
             for row in response['data']:
-                print([row[content][0:min(len(row), 100)] if content != 'ID' else row[content] for content in row])
+                print([row[content][0:min(len(row[content]), 1000)] if content != 'ID' else row[content] for content in row])
 
         # second query in the cycle- the data returned from the database after this query is discarded.
         # It generates main configuration file based on the previous query with all the module data
-        elif self._query_type == 'conf':
+        #elif self._query_type == 'conf':
+        elif table_name == 'conf':
             response = sqlToJson_offline(['config'], [[self._fileGenerator.generate_main_file()]])
             response['types'] = ['VAR_STRING']
             print('main configuration file: \n'+str(response))
@@ -382,7 +384,8 @@ class DB_offline:
         # desired connections. The table has a following structure:
         # [[di_conn[0], do_conn[0], ai_conn[0], ao_conn[0]],[di_conn[1], do_conn[1], ai_conn[1], ao_conn[1]], ...]
         # it is necessary that all the connection types (di, do, ai, ao) have the same length.
-        elif self._query_type == 'io':
+        #elif self._query_type == 'io':
+        elif table_name == 'io':
             conn = self._fileGenerator.connections
 
             # to ensure that connection lists of each type have the same length, they are filled with empty strings
