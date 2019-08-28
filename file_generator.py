@@ -4,13 +4,18 @@ BASE_PATH_TEST = "IF4.ST2.IF1.ST"
 import re
 import os
 
+
 def bind_IO_pv(variable_name):
+    # Function that generates the appropriate line to insert in io file to bind port with PV
+    # Input and output lines differ slightly so we assume the 2nd character is o if output and i if input
     if variable_name[1] == 'o':
         return '<Prod Device="TC#4-CPYDEV" DPName="::' + variable_name + '" Kind="pv"/>'
     else:
         return '<Cons Device="TC#4-CPYDEV" DPName="::' + variable_name + '" Kind="pv"/>'
 
+
 def module_type(module_name):
+    # This function determines the type of module - di, do, ai, ao or other, based on the name
     if 'DI' in module_name or 'di' in module_name:
         return 'di'
     if 'DO' in module_name or 'do' in module_name:
@@ -22,6 +27,8 @@ def module_type(module_name):
     return 'other'
 
 def get_complementary_module(module_name):
+    # This method assigns a testing module for subject module given as argument
+    # TODO: modify this function so it detects the type of module, not just hard coded module name
     if module_name == 'X20AI2622':
         return 'X20AO2622'
     if module_name == 'X20AO2622':
@@ -35,6 +42,7 @@ def get_complementary_module(module_name):
 
 
 class ModuleConfiguration:
+    # This class represents a module- it contains its path, name and contents of the configuration files
     def __init__(self, path, file_name, content_ar, content_io):
         self.path = path
         self.file_name = file_name
@@ -53,14 +61,18 @@ class ModuleConfiguration:
 
 
 class FileGenerator:
+    # This class generates configuration files
     def __init__(self, template_path='templates'):
         self.template_path = template_path
         self.module_idx_subject = 2
         self.module_idx_test = 2
         self.modules = []
-        self.connections = {'di': [], 'do': [], 'ai': [], 'ao': [], 'digital': [],'analog': []}
+        self.connections = {'di': [], 'do': [], 'ai': [], 'ao': []}
 
     def add_module(self, module_name, active_ports):
+        # Calling this method will add the subject module given as argument to the list of configured modules.
+        # It automatically generates .io and .ar for the module and, if necessary, for the complementary testing module.
+        # The method also adds the connections specified in active_ports argument to the list
         modules = []
         modules.append(ModuleConfiguration(BASE_PATH_SUBJECT+str(self.module_idx_subject),
                                          module_name+'_sub'+str(self.module_idx_subject),
@@ -86,6 +98,8 @@ class FileGenerator:
         return modules
 
     def create_other(self):
+        # This method creates an empty template files for any module that is not IO.
+        # It should be called if the other.io or other.ar is not fount ond templates directory
         if not os.path.isdir(self.template_path):
             os.mkdir(self.template_path)
         f = open(self.template_path + '/other.ar', 'w')
@@ -105,7 +119,9 @@ class FileGenerator:
                 '</Links\n'
                 '</IO>')
         f.close()
+
     def generate_ar(self, module_name, is_on_subject):
+        # This method generates a .ar configuration file
         if is_on_subject:
             module_path = BASE_PATH_SUBJECT+str(self.module_idx_subject)
         else:
@@ -122,15 +138,19 @@ class FileGenerator:
         try:
             f = open(self.template_path + '/' + module_name + '.ar', 'r')
         except:
-            raise Exception('couldn\'t open file "' + module_name + '.ar' + '" in directory "'+self.template_path)
+            raise Exception('couldn\'t open file "' + module_name + '.ar' + '" in directory "'+self.template_path +
+                            '". Run generate_templates function first to generate necessary configuration files')
 
 
         file_content = f.read()
         file_content = re.sub('#module_path#', module_path, file_content)
+        file_content = re.sub('"Supervision" Value="on"', '"Supervision" Value="off"', file_content)
         return file_content
 
 
     def generate_io(self, module_name, is_on_subject):
+        # This method generates a .io configuration file. If the module is IO, it modifies the template file to bind
+        # ports to appropriate array elements, according to the module's type and path
         if module_type(module_name) == 'other':
             if not os.path.isfile(self.template_path+'/other.io'):
                 self.create_other()
@@ -157,20 +177,13 @@ class FileGenerator:
             variable_name = array_name+','+port_idx+']'
             file_content = re.sub(bind, bind_IO_pv(variable_name), file_content)
 
-        # for port in active_ports:
-        #     port_str = str(port)
-        #     if port < 10:
-        #         port_str = '0'+port_str
-        #     variable_name = array_name + ',' + str(port) + ']'
-        #     file_content = re.sub('#'+module_type(module_name)+port_str+'#', bind_IO_pv(variable_name), file_content)
-
-
         file_content = re.sub('#module_path#', module_path, file_content)
         file_content = re.sub('#....#', '', file_content)
-        file_content = re.sub('"Supervision" Value="on"', '"Supervision" Value="off"', file_content)
+
         return file_content
 
     def generate_main_file(self):
+        # This method returns a main configuration file based on all the modules that have been added by add_module method
         content = '<IOCFG xmlns="http://www.br-automation.com/AR/IO" Version="2.0">\n' \
                   '<Module ID="$root" Source = "AR" SourceID="$root" />\n' \
                   '<Module ID="IF4.ST1" Source = "AR" SourceName="X20BC0083" />\n' \
@@ -180,8 +193,8 @@ class FileGenerator:
         content += '</IOCFG>'
         return content
 
-
-    def store_files(self, directory = 'processed'):
+    def store_files(self, directory='processed'):
+        # This method stores all files on local machine (for debugging or manual file transfer to the PLC)
         for module in self.modules:
             module.store_files(directory)
         if not os.path.isdir(directory):
