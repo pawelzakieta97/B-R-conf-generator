@@ -98,8 +98,8 @@ class FileGenerator:
         return modules
 
     def create_other(self):
-        # This method creates an empty template files for any module that is not IO.
-        # It should be called if the other.io or other.ar is not fount ond templates directory
+        # This method creates empty template files for any module that is not IO.
+        # It should be called if the other.io or other.ar is not found in templates directory
         if not os.path.isdir(self.template_path):
             os.mkdir(self.template_path)
         f = open(self.template_path + '/other.ar', 'w')

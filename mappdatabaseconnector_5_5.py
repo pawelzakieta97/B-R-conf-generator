@@ -200,7 +200,7 @@ class DB:
         ID_project = re.findall(r'\d+', sql)[-1]
 
         # change all queries to selecting all module entries from a given project
-        sql = 'SELECT * FROM ' + table_name + " WHERE ID_project = '"+ID_project+"';"
+        sql = "SELECT * FROM Configurations WHERE ID_project = '"+ID_project+"'"
         print('ID_project = '+ID_project)
         for statement in re.sub(r'(\)\s*);', r'\1%;%', sql).split('%;%'):
             print('executing: ' + statement)
@@ -235,7 +235,7 @@ class DB:
                     data_processed.append([row[1], 'empty.ar', '', 'empty.io', '',
                                            sub_module.file_name + '.ar', sub_module.content_ar,
                                            sub_module.file_name + '.io', sub_module.content_io])
-            response = sqlToJson_offline(['ID', 'test_name_ar', 'test_file_ar', 'test_name_io', 'test_file_io', 'sub_name_ar',
+            response = sqlToJson(['ID', 'test_name_ar', 'test_file_ar', 'test_name_io', 'test_file_io', 'sub_name_ar',
                                   'sub_file_ar',  'sub_name_io', 'sub_file_io'], data_processed, cursor.description)
             # overwriting variable types- cursor.description contains information on the actual database
             # table that has only 4 columns.
@@ -249,7 +249,7 @@ class DB:
         # second query in the cycle- the data returned from the database after this query is discarded.
         # It generates main configuration file based on the previous query with all the module data
         elif self._query_type == 'conf':
-            response = sqlToJson_offline(['config'], [[self._fileGenerator.generate_main_file()]], cursor.description)
+            response = sqlToJson(['config'], [[self._fileGenerator.generate_main_file()]], cursor.description)
             response['types'] = ['VAR_STRING']
             print('main configuration file: \n'+str(response))
             self._query_type = 'io'
@@ -271,9 +271,9 @@ class DB:
             # {'di':[di1, di2...], 'do':[do1, do2...], 'ai':[a1, ai2...], 'ao':[ao1, ao2...]}
             # to
             # [[d1, do1, ai1, ao1],[d2, do2, ai2, ao2],...]
-            response = sqlToJson_offline(['di', 'do', 'ai', 'ao'],
-                                         [[conn['di'][i], conn['do'][i], conn['ai'][i], conn['ao'][i]] for i in range(len(conn['di']))],
-                                         cursor.description)
+            response = sqlToJson(['di', 'do', 'ai', 'ao'],
+                                 [[conn['di'][i], conn['do'][i], conn['ai'][i], conn['ao'][i]] for i in range(len(conn['di']))],
+                                 cursor.description)
             response['types'] = ['VAR_STRING', 'VAR_STRING', 'VAR_STRING', 'VAR_STRING']
             self._query_type = 'modules'
             print('connections: \n'+str(response))
