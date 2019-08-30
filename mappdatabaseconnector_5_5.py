@@ -195,7 +195,7 @@ class DB:
 
         begin = re.search('FROM', sql).start()
         end = re.search('WHERE', sql).start()
-        table_name = sql[begin + 6:end - 2]
+        table_name = sql[begin + 5:end - 1]
         print('table name: ' + table_name)
         ID_project = re.findall(r'\d+', sql)[-1]
 
@@ -328,7 +328,7 @@ class DB_offline:
 
         begin = re.search('FROM', sql).start()
         end = re.search('WHERE', sql).start()
-        table_name = sql[begin + 6:end - 2]
+        table_name = sql[begin + 5:end - 1]
         print('table name: ' + table_name)
         ID_project = re.findall(r'\d+', sql)[-1]
 
