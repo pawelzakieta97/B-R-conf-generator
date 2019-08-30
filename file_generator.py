@@ -1,5 +1,5 @@
-BASE_PATH_SUBJECT = "IF4.ST1.IF1.ST"
-BASE_PATH_TEST = "IF4.ST2.IF1.ST"
+BASE_PATH_SUBJECT = "IF4.ST2.IF1.ST"
+BASE_PATH_TEST = "IF4.ST1.IF1.ST"
 
 import re
 import os
@@ -69,11 +69,15 @@ class FileGenerator:
         self.modules = []
         self.connections = {'di': [], 'do': [], 'ai': [], 'ao': []}
 
-    def add_module(self, module_name, active_ports):
+    def add_module(self, module_name, active_ports, module_sub_idx=None, module_test_idx=None):
         # Calling this method will add the subject module given as argument to the list of configured modules.
         # It automatically generates .io and .ar for the module and, if necessary, for the complementary testing module.
         # The method also adds the connections specified in active_ports argument to the list
         modules = []
+        if module_sub_idx is not None:
+            self.module_idx_subject = module_sub_idx
+        if module_test_idx is not None:
+            self.module_idx_test = module_test_idx
         modules.append(ModuleConfiguration(BASE_PATH_SUBJECT+str(self.module_idx_subject),
                                          module_name+'_sub'+str(self.module_idx_subject),
                                          self.generate_ar(module_name, is_on_subject=True),

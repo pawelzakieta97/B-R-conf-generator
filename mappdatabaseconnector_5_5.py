@@ -138,7 +138,7 @@ def myconverter(o):
         else:
             return makeTime(o)
     elif isinstance(o, decimal.Decimal):
-        return float(o) # python's float has double precision
+        return float(o)# python's float has double precision
 
 class DB:
 
@@ -216,11 +216,15 @@ class DB:
 
         data_processed = []
 
-        # First query in the cycle- returns the list of all necessary module configuration files to automation studio
+        # First query - returns the list of all necessary module configuration files to automation studio
         if self._query_type == 'modules':
             self._fileGenerator = FileGenerator(template_path='templates')
             for row in data:
-                modules = self._fileGenerator.add_module(row[2], eval(row[3]))
+                module_sub_idx = row[1]
+                module_name = row[2]
+                active_ports = eval(row[3])
+
+                modules = self._fileGenerator.add_module(module_name, active_ports, module_sub_idx=module_sub_idx)
                 # method add_module returns a list of generated module info (including file names and contents). If the
                 # subject module is IO, the list contains 2 modules- subject and test
                 if len(modules) == 2:
@@ -246,7 +250,7 @@ class DB:
             for row in response['data']:
                 print([row[content][0:min(len(row), 100)] if content != 'ID' else row[content] for content in row])
 
-        # second query in the cycle- the data returned from the database after this query is discarded.
+        # second query - the data returned from the database after this query is discarded.
         # It generates main configuration file based on the previous query with all the module data
         elif self._query_type == 'conf':
             response = sqlToJson(['config'], [[self._fileGenerator.generate_main_file()]], cursor.description)
@@ -254,8 +258,8 @@ class DB:
             print('main configuration file: \n'+str(response))
             self._query_type = 'io'
 
-        # third query in the cycle- based on active ports data received in the first query, generates a table of
-        # desired connections. The table has a following structure:
+        # third query - based on active ports data received in the first query, a table of
+        # desired connections is generated. The table has a following structure:
         # [[di_conn[0], do_conn[0], ai_conn[0], ao_conn[0]],[di_conn[1], do_conn[1], ai_conn[1], ao_conn[1]], ...]
         # it is necessary that all the connection types (di, do, ai, ao) have the same length.
         elif self._query_type == 'io':
@@ -335,17 +339,22 @@ class DB_offline:
             print('simulating executing: ' + statement)
         response = {}
         subject_modules = ['X20AT2222', 'X20AI2622', 'X20DI9371', 'X20AO2622', 'X20DO9322']
-        data = [[1, 1, subject_modules[0], '[1,2]'], [1, 1, subject_modules[1], '[1,2]'],
-                [1, 1, subject_modules[2], '[1,2]'], [1, 1, subject_modules[3], '[1,2]'],
-                [1, 1, subject_modules[4], '[1,2]']]
+
+        # simulation of database return data
+        data = [[1, 2, subject_modules[0], '[1,2]'], [1, 3, subject_modules[1], '[1,2]'],
+                [1, 4, subject_modules[2], '[1,2]'], [1, 5, subject_modules[3], '[1,2]'],
+                [1, 6, subject_modules[4], '[1,2]']]
         data_processed = []
 
-        # First query in the cycle- returns the list of all necessary module configuration files to automation studio
-        #if self._query_type == 'modules':
+        # First query - returns the list of all necessary module configuration files to automation studio
         if table_name == 'modules':
             self._fileGenerator = FileGenerator(template_path='templates')
             for row in data:
-                modules = self._fileGenerator.add_module(row[2], eval(row[3]))
+                module_sub_idx = row[1]
+                module_name = row[2]
+                active_ports = eval(row[3])
+
+                modules = self._fileGenerator.add_module(module_name, active_ports, module_sub_idx=module_sub_idx)
                 # method add_module returns a list of generated module info (including file names and contents). If the
                 # subject module is IO, the list contains 2 modules- subject and test
                 if len(modules) == 2:
@@ -371,20 +380,18 @@ class DB_offline:
             for row in response['data']:
                 print([row[content][0:min(len(row[content]), 1000)] if content != 'ID' else row[content] for content in row])
 
-        # second query in the cycle- the data returned from the database after this query is discarded.
+        # second query - the data returned from the database after this query is discarded.
         # It generates main configuration file based on the previous query with all the module data
-        #elif self._query_type == 'conf':
         elif table_name == 'conf':
             response = sqlToJson_offline(['config'], [[self._fileGenerator.generate_main_file()]])
             response['types'] = ['VAR_STRING']
             print('main configuration file: \n'+str(response))
             self._query_type = 'io'
 
-        # third query in the cycle- based on active ports data received in the first query, generates a table of
-        # desired connections. The table has a following structure:
+        # third query - based on active ports data received in the first query, a table of
+        # desired connections is generated. The table has a following structure:
         # [[di_conn[0], do_conn[0], ai_conn[0], ao_conn[0]],[di_conn[1], do_conn[1], ai_conn[1], ao_conn[1]], ...]
         # it is necessary that all the connection types (di, do, ai, ao) have the same length.
-        #elif self._query_type == 'io':
         elif table_name == 'io':
             conn = self._fileGenerator.connections
 
