@@ -220,8 +220,8 @@ class DB:
         if self._query_type == 'modules':
             self._fileGenerator = FileGenerator(template_path='templates')
             for row in data:
-                module_sub_idx = row[1]
-                module_name = row[2]
+                module_sub_idx = row[1][0:9]
+                module_name = row[2][0:9]
                 active_ports = eval(row[3])
 
                 modules = self._fileGenerator.add_module(module_name, active_ports, module_sub_idx=module_sub_idx)
