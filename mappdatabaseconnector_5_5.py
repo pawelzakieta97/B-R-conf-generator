@@ -220,9 +220,11 @@ class DB:
         if self._query_type == 'modules':
             self._fileGenerator = FileGenerator(template_path='templates')
             for row in data:
-                module_sub_idx = row[1][0:9]
-                module_name = row[2][0:9]
-                active_ports = eval(row[3])
+                print('row[2].strip()', row[2].strip())
+                print('row[3].strip()', row[3].strip())
+                module_sub_idx = row[1]
+                module_name = row[2].strip()
+                active_ports = eval(row[3].strip())
 
                 modules = self._fileGenerator.add_module(module_name, active_ports, module_sub_idx=module_sub_idx)
                 # method add_module returns a list of generated module info (including file names and contents). If the
@@ -417,7 +419,7 @@ class DB_offline:
 
 class S(BaseHTTPRequestHandler):
 
-    __sqlDb = DB_offline()
+    __sqlDb = DB()
 
     def _set_headers(self, contentLength):
 
